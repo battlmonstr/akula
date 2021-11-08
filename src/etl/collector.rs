@@ -55,6 +55,7 @@ where
             id: entry.id,
         });
         if self.buffer_size > self.buffer_capacity {
+            println!("{} > {}", self.buffer_size, self.buffer_capacity);
             self.buffer_size = 0;
             self.buffer.sort_unstable();
             let current_id = self.data_providers.len();
@@ -167,9 +168,14 @@ mod tests {
         let tx = db.begin_mutable().await.unwrap();
         let mut collector = Collector::new(1000);
 
+        println!("q");
+        let mut i = 0;
         for entry in entries.clone() {
             collector.collect(entry);
+            i += 1;
+            println!("e {}", i);
         }
+        println!("q2");
         // Any cursor is fine
         let mut cursor = tx
             .mutable_cursor(&tables::HeaderNumber.erased())

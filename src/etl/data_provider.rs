@@ -24,6 +24,16 @@ pub struct DataProvider {
     pub id: usize,
 }
 
+static mut cc: i32 = 0;
+
+impl Drop for DataProvider {
+    fn drop(&mut self) {
+        unsafe {
+            cc -= 1;
+        }
+    }
+}
+
 impl DataProvider {
     pub fn new<Key, Value>(
         buffer: Vec<Entry<Key, Value>>,
@@ -34,6 +44,8 @@ impl DataProvider {
         Key: AsRef<[u8]>,
         Value: AsRef<[u8]>,
     {
+        unsafe { cc += 1;
+        println!("{}", cc); }
         let mut file = tempfile()?;
 
         for entry in buffer {
