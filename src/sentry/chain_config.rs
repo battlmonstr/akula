@@ -1,29 +1,33 @@
 use super::chain_id::ChainId;
-use crate::{models::BlockNumber, state::genesis::GenesisData};
-use hex_literal::hex;
+use crate::{
+    genesis::GenesisState,
+    genesis_v2::GenesisChainSpec,
+    models::{BlockNumber, ChainSpec},
+};
 use std::collections::HashMap;
 
 pub struct ChainsConfig(HashMap<String, ChainConfig>);
 
 #[derive(Clone)]
 pub struct ChainConfig {
-    genesis: &'static GenesisData,
+    chain_spec: &'static ChainSpec,
     genesis_block_hash: ethereum_types::H256,
 }
 
 impl ChainConfig {
-    fn new(genesis: &'static GenesisData, genesis_block_hash: ethereum_types::H256) -> Self {
-        // TODO: calculate hash from GenesisData
-        // let genesis_header = genesis.header(&genesis.initial_state());
-        // let genesis_block_hash = genesis_header.hash();
+    fn new(chain_spec: &'static ChainSpec) -> Self {
+        let genesis = GenesisChainSpec::new(chain_spec);
+        let genesis_header = genesis.header(&genesis.initial_state());
+        let genesis_block_hash = genesis_header.hash();
+
         Self {
-            genesis,
+            chain_spec,
             genesis_block_hash,
         }
     }
 
     pub fn id(&self) -> ChainId {
-        self.genesis.config.chain_id
+        self.chain_spec.params.chain_id
     }
 
     pub fn genesis_block_hash(&self) -> ethereum_types::H256 {
@@ -31,7 +35,7 @@ impl ChainConfig {
     }
 
     pub fn fork_block_numbers(&self) -> Vec<BlockNumber> {
-        self.genesis.config.gather_forks().iter().cloned().collect()
+        self.chain_spec.gather_forks().iter().cloned().collect()
     }
 }
 
@@ -40,21 +44,15 @@ impl ChainsConfig {
         let mut configs = HashMap::<String, ChainConfig>::new();
         configs.insert(
             String::from("mainnet"),
-            ChainConfig::new(
-                &crate::res::genesis::MAINNET,
-                ethereum_types::H256(hex!(
-                    "d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3"
-                )),
-            ),
+            ChainConfig::new(&crate::res::chainspec::MAINNET),
         );
         configs.insert(
             String::from("ropsten"),
-            ChainConfig::new(
-                &crate::res::genesis::ROPSTEN,
-                ethereum_types::H256(hex!(
-                    "41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d"
-                )),
-            ),
+            ChainConfig::new(&crate::res::chainspec::ROPSTEN),
+        );
+        configs.insert(
+            String::from("rinkeby"),
+            ChainConfig::new(&crate::res::chainspec::RINKEBY),
         );
         Ok(ChainsConfig(configs))
     }

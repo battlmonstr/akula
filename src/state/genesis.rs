@@ -9,6 +9,11 @@ use ethereum_types::*;
 use serde::*;
 use std::collections::HashMap;
 
+pub trait GenesisState {
+    fn initial_state(&self) -> InMemoryState;
+    fn header(&self, initial_state: &InMemoryState) -> BlockHeader;
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AllocAccountData {
@@ -33,8 +38,8 @@ pub struct GenesisData {
     pub timestamp: u64,
 }
 
-impl GenesisData {
-    pub fn initial_state(&self) -> InMemoryState {
+impl GenesisState for GenesisData {
+    fn initial_state(&self) -> InMemoryState {
         let mut state_buffer = InMemoryState::new();
         // Allocate accounts
         for (address, account) in &self.alloc {
@@ -47,7 +52,7 @@ impl GenesisData {
         state_buffer
     }
 
-    pub fn header(&self, initial_state: &InMemoryState) -> BlockHeader {
+    fn header(&self, initial_state: &InMemoryState) -> BlockHeader {
         let genesis = self;
         let state_root = initial_state.state_root_hash();
 
