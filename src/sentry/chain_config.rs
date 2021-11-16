@@ -29,6 +29,14 @@ impl ChainConfig {
         self.chain_spec.params.chain_id
     }
 
+    pub fn chain_name(&self) -> String {
+        self.chain_spec.name.clone()
+    }
+
+    pub fn chain_spec(&self) -> &ChainSpec {
+        &self.chain_spec
+    }
+
     pub fn genesis_block_hash(&self) -> ethereum_types::H256 {
         self.genesis_block_hash
     }
