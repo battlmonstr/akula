@@ -151,7 +151,7 @@ impl FetchReceiveStageCanProceedCheck {
 }
 
 #[async_trait::async_trait]
-impl super::stage::Stage for FetchReceiveStage {
+impl<'stage> super::stage::Stage<'stage> for FetchReceiveStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         FetchReceiveStage::execute(self).await
     }

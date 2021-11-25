@@ -122,7 +122,7 @@ impl VerifyStagePreverified {
 }
 
 #[async_trait::async_trait]
-impl super::stage::Stage for VerifyStagePreverified {
+impl<'stage> super::stage::Stage<'stage> for VerifyStagePreverified {
     async fn execute(&mut self) -> anyhow::Result<()> {
         VerifyStagePreverified::execute(self).await
     }

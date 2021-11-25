@@ -87,7 +87,7 @@ impl PenalizeStage {
 }
 
 #[async_trait::async_trait]
-impl super::stage::Stage for PenalizeStage {
+impl<'stage> super::stage::Stage<'stage> for PenalizeStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         PenalizeStage::execute(self).await
     }

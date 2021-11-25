@@ -81,7 +81,7 @@ impl RetryStage {
 }
 
 #[async_trait::async_trait]
-impl super::stage::Stage for RetryStage {
+impl<'stage> super::stage::Stage<'stage> for RetryStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         RetryStage::execute(self).await
     }
