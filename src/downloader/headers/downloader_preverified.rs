@@ -47,9 +47,13 @@ impl DownloaderPreverified {
         }
     }
 
-    pub async fn run<'downloader, 'db: 'downloader, DB: kv::traits::MutableKV>(
+    pub async fn run<
+        'downloader,
+        'db: 'downloader,
+        RwTx: kv::traits::MutableTransaction<'db> + 'db,
+    >(
         &'downloader self,
-        db_transaction: &'db DB::MutableTx<'db>,
+        db_transaction: &'downloader RwTx,
     ) -> anyhow::Result<DownloaderPreverifiedReport> {
         let preverified_hashes_config = PreverifiedHashesConfig::new(&self.chain_name)?;
 
@@ -93,7 +97,7 @@ impl DownloaderPreverified {
         let verify_stage =
             VerifyStagePreverified::new(header_slices.clone(), preverified_hashes_config);
         let penalize_stage = PenalizeStage::new(header_slices.clone(), sentry.clone());
-        let save_stage = SaveStage::<'db, DB>::new(header_slices.clone(), db_transaction);
+        let save_stage = SaveStage::<RwTx>::new(header_slices.clone(), db_transaction);
         let refill_stage = RefillStage::new(header_slices.clone());
         let top_block_estimate_stage = TopBlockEstimateStage::new(sentry.clone());
 

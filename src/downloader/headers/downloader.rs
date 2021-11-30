@@ -28,9 +28,13 @@ impl Downloader {
         }
     }
 
-    pub async fn run<'downloader, 'db: 'downloader, DB: kv::traits::MutableKV>(
+    pub async fn run<
+        'downloader,
+        'db: 'downloader,
+        RwTx: kv::traits::MutableTransaction<'db> + 'db,
+    >(
         &'downloader self,
-        db_transaction: &'db DB::MutableTx<'db>,
+        db_transaction: &'downloader RwTx,
     ) -> anyhow::Result<()> {
         let mem_limit = 50 << 20; /* 50 Mb */
 
@@ -41,7 +45,7 @@ impl Downloader {
             self.ui_system.clone(),
         );
 
-        let preverified_report = downloader_preverified.run::<DB>(db_transaction).await?;
+        let preverified_report = downloader_preverified.run::<RwTx>(db_transaction).await?;
 
         let downloader_linear = downloader_linear::DownloaderLinear::new(
             self.chain_config.clone(),
@@ -52,7 +56,7 @@ impl Downloader {
             self.ui_system.clone(),
         );
 
-        downloader_linear.run::<DB>(db_transaction).await?;
+        downloader_linear.run::<RwTx>(db_transaction).await?;
 
         Ok(())
     }

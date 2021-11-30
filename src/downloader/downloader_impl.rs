@@ -27,10 +27,14 @@ impl Downloader {
         Ok(Self { opts, chain_config })
     }
 
-    pub async fn run<'downloader, 'db: 'downloader, DB: kv::traits::MutableKV>(
+    pub async fn run<
+        'downloader,
+        'db: 'downloader,
+        RwTx: kv::traits::MutableTransaction<'db> + 'db,
+    >(
         &'downloader self,
         sentry_client_opt: Option<Box<dyn SentryClient>>,
-        db_transaction: &'db DB::MutableTx<'db>,
+        db_transaction: &'downloader RwTx,
     ) -> anyhow::Result<()> {
         let status = sentry_client::Status {
             total_difficulty: ethereum_types::U256::zero(),
@@ -65,7 +69,7 @@ impl Downloader {
             sentry.clone(),
             ui_system.clone(),
         );
-        headers_downloader.run::<DB>(db_transaction).await?;
+        headers_downloader.run::<RwTx>(db_transaction).await?;
 
         ui_system.try_lock()?.stop().await?;
 

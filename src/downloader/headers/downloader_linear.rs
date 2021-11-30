@@ -69,9 +69,13 @@ impl DownloaderLinear {
         Ok(estimated_top_block_num)
     }
 
-    pub async fn run<'downloader, 'db: 'downloader, DB: kv::traits::MutableKV>(
+    pub async fn run<
+        'downloader,
+        'db: 'downloader,
+        RwTx: kv::traits::MutableTransaction<'db> + 'db,
+    >(
         &'downloader self,
-        db_transaction: &'db DB::MutableTx<'db>,
+        db_transaction: &'downloader RwTx,
     ) -> anyhow::Result<()> {
         let header_slices_mem_limit = self.mem_limit;
 
@@ -127,7 +131,7 @@ impl DownloaderLinear {
             self.start_block_hash,
         );
         let penalize_stage = PenalizeStage::new(header_slices.clone(), sentry.clone());
-        let save_stage = SaveStage::<DB>::new(header_slices.clone(), db_transaction);
+        let save_stage = SaveStage::<RwTx>::new(header_slices.clone(), db_transaction);
         let refill_stage = RefillStage::new(header_slices.clone());
 
         let can_proceed = fetch_receive_stage.can_proceed_check();

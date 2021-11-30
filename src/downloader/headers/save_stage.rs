@@ -13,15 +13,15 @@ use std::{ops::DerefMut, sync::Arc};
 use tracing::*;
 
 /// Saves slices into the database, and sets Saved status.
-pub struct SaveStage<'db, DB: kv::traits::MutableKV> {
+pub struct SaveStage<'tx, RwTx> {
     header_slices: Arc<HeaderSlices>,
     pending_watch: HeaderSliceStatusWatch,
     remaining_count: usize,
-    db_transaction: &'db DB::MutableTx<'db>,
+    db_transaction: &'tx RwTx,
 }
 
-impl<'db, DB: kv::traits::MutableKV> SaveStage<'db, DB> {
-    pub fn new(header_slices: Arc<HeaderSlices>, db_transaction: &'db DB::MutableTx<'db>) -> Self {
+impl<'tx, 'db: 'tx, RwTx: MutableTransaction<'db> + 'db> SaveStage<'tx, RwTx> {
+    pub fn new(header_slices: Arc<HeaderSlices>, db_transaction: &'tx RwTx) -> Self {
         Self {
             header_slices: header_slices.clone(),
             pending_watch: HeaderSliceStatusWatch::new(
@@ -116,7 +116,7 @@ impl<'db, DB: kv::traits::MutableKV> SaveStage<'db, DB> {
         Ok(())
     }
 
-    async fn save_header(&self, header: BlockHeader, tx: &DB::MutableTx<'_>) -> anyhow::Result<()> {
+    async fn save_header(&self, header: BlockHeader, tx: &RwTx) -> anyhow::Result<()> {
         let block_num = header.number;
         let header_hash = header.hash();
         let header_key: HeaderKey = (block_num, header_hash);
@@ -140,10 +140,10 @@ impl<'db, DB: kv::traits::MutableKV> SaveStage<'db, DB> {
 }
 
 #[async_trait::async_trait]
-impl<'stage, 'db: 'stage, DB: kv::traits::MutableKV> super::stage::Stage<'stage>
-    for SaveStage<'db, DB>
+impl<'stage, 'tx, 'db: 'tx, RwTx: MutableTransaction<'db> + 'db> super::stage::Stage<'stage>
+    for SaveStage<'tx, RwTx>
 {
     async fn execute(&mut self) -> anyhow::Result<()> {
-        SaveStage::<'db, DB>::execute(self).await
+        SaveStage::<RwTx>::execute(self).await
     }
 }
