@@ -94,7 +94,7 @@ impl VerifyStageLinear {
 }
 
 #[async_trait::async_trait]
-impl<'stage> super::stage::Stage<'stage> for VerifyStageLinear {
+impl super::stage::Stage for VerifyStageLinear {
     async fn execute(&mut self) -> anyhow::Result<()> {
         VerifyStageLinear::execute(self).await
     }

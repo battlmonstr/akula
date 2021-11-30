@@ -126,7 +126,7 @@ impl FetchRequestStage {
 }
 
 #[async_trait::async_trait]
-impl<'stage> super::stage::Stage<'stage> for FetchRequestStage {
+impl super::stage::Stage for FetchRequestStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         FetchRequestStage::execute(self).await
     }

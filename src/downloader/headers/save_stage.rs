@@ -140,7 +140,7 @@ impl<'tx, 'db: 'tx, RwTx: MutableTransaction<'db> + 'db> SaveStage<'tx, RwTx> {
 }
 
 #[async_trait::async_trait]
-impl<'stage, 'tx, 'db: 'tx, RwTx: MutableTransaction<'db> + 'db> super::stage::Stage<'stage>
+impl<'tx, 'db: 'tx, RwTx: MutableTransaction<'db> + 'db> super::stage::Stage
     for SaveStage<'tx, RwTx>
 {
     async fn execute(&mut self) -> anyhow::Result<()> {

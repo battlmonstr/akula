@@ -130,7 +130,7 @@ impl TopBlockEstimateStage {
 }
 
 #[async_trait::async_trait]
-impl<'stage> super::stage::Stage<'stage> for TopBlockEstimateStage {
+impl super::stage::Stage for TopBlockEstimateStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         TopBlockEstimateStage::execute(self).await
     }

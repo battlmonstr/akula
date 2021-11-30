@@ -44,7 +44,7 @@ impl RefillStage {
 }
 
 #[async_trait::async_trait]
-impl<'stage> super::stage::Stage<'stage> for RefillStage {
+impl super::stage::Stage for RefillStage {
     async fn execute(&mut self) -> anyhow::Result<()> {
         RefillStage::execute(self).await
     }
