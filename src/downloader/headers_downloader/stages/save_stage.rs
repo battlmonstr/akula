@@ -249,3 +249,36 @@ impl<'tx, 'db: 'tx, RwTx: MutableTransaction<'db>> super::stage::Stage for SaveS
         Self::can_proceed_check(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{super::headers::header::BlockHeader, *};
+    use crate::{
+        genesis::GenesisState,
+        kv::traits::{MutableKV, Transaction},
+        res::chainspec,
+    };
+
+    #[tokio::test]
+    async fn save_header_as_bytes_is_readable_as_typed() {
+        let genesis = GenesisState::new(chainspec::MAINNET.clone());
+        let header = BlockHeader::from(genesis.header(&genesis.initial_state()));
+        let header_key: HeaderKey = (header.number(), header.hash());
+        let header_data = header.rlp_repr();
+
+        let db = kv::new_mem_database().unwrap();
+        let db_transaction = db.begin_mutable().await.unwrap();
+
+        db_transaction
+            .set(HeaderTableWithBytes, header_key, header_data)
+            .await
+            .unwrap();
+        let actual_header = db_transaction
+            .get(kv::tables::Header, header_key)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(actual_header, header.header);
+    }
+}
